@@ -1,6 +1,6 @@
 import json
 from collections import defaultdict
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, List, Tuple
 from argparse import ArgumentParser
 from time import time
 
@@ -19,23 +19,31 @@ REGIONS = {
     "platform": {
         "name": "platform",
         "rect": [H // 2, 0, H, W],
-        "leds": {
-            "rgb": []
-        }
+        "leds": [],
     },
-    "cart1": {
-        "name": "cart1",
+    "cart3": {
+        "name": "cart3",
         "rect": [0, 0, H // 2, W // 2],
-        "leds": {
-            "rgb": ["rgb1", "rgb2"]
-        }
+        "leds": [
+            ("bot5", "mid5", "top5"),
+            ("bot6", "mid6", "top6"),
+            ],
     },
     "cart2": {
         "name": "cart2",
+        "rect": [0, 0, H // 2, W // 2],
+        "leds": [
+            ("bot3", "mid3", "top3"),
+            ("bot4", "mid4", "top4"),
+            ],
+    },
+    "cart1": {
+        "name": "cart1",
         "rect": [0, W // 2, H // 2, W],
-        "leds": {
-            "rgb": ["rgb3", "rgb4"]
-        }
+        "leds": [
+            ("bot1", "mid1", "top1"),
+            ("bot2", "mid2", "top2"),
+            ],
     },
 }
 
@@ -67,6 +75,35 @@ def update_regions(markers, regions, markerregions, markertimeouts):
     return markerregions, markertimeouts
 
 
+def set_leds(ledgroups, n_on, ledclient):
+    ons = ([True] * n_on) + ([False] * (len(ledgroups[0])-n_on))
+    for leds in ledgroups:
+        for led, on in zip(leds, ons):
+            if on:
+                ledclient.set_on(led)
+            else:
+                ledclient.set_off(led)
+
+
+def light_region(regionname: str, count: int, ledclient: LEDClient):
+        leds: List[Tuple[str, str, str]] = REGIONS[regionname]["leds"]
+        # region is not a cart
+        if not leds:
+            return
+        # cart empty
+        elif count == 0:
+            set_leds(leds, 3, ledclient)
+        # cart lightly filled
+        elif count <= 3:
+            set_leds(leds, 2, ledclient)
+        # cart filled
+        elif count <= 6:
+            set_leds(leds, 1, ledclient)
+        # cart full
+        else:
+            set_leds(leds, 0, ledclient)
+
+
 def main(args):
     ledclient = LEDClient(args.controllerurl)
     detector = Detector(args.cameraid)
@@ -90,20 +127,9 @@ def main(args):
                 if regionname is None:
                     continue
                 region_counts[regionname] += 1
-
-            # turn on led if 
+            
             for regionname, count in region_counts.items():
-                leds = REGIONS[regionname]["leds"]["rgb"]
-                if count == 0:
-                    for led in leds:
-                        ledclient.set_color(led, (0, .4, 0))
-                elif 1 <= count <= 2:
-                    print(count)
-                    for led in leds:
-                        ledclient.set_color(led, (.5, .5, 0))
-                else:
-                    for led in leds:
-                        ledclient.set_color(led, (.5, 0, 0))
+                light_region(regionname, count, ledclient)
 
             draw_debug(frame, markers, REGIONS)
             lh, lw = int(frame.shape[0]*2), int(frame.shape[1]*2)
