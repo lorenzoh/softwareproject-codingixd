@@ -1,1 +1,1 @@
-{"regions": {"platform": {"id": "platform", "n": 17, "max": 8, "entered": 2, "exited": 2}, "cart2": {"id": "cart2", "n": 0, "max": 8, "entered": 2, "exited": 2}, "cart1": {"id": "cart1", "n": 0, "max": 8, "entered": 2, "exited": 2}}}
+{"regions": {"platform": {"id": "platform", "n": 0, "max": 8, "entered": 0, "exited": 0}, "cart2": {"id": "cart2", "n": 0, "max": 8, "entered": 0, "exited": 0}, "cart1": {"id": "cart1", "n": 0, "max": 8, "entered": 0, "exited": 0}}}

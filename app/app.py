@@ -13,6 +13,7 @@ from detector import Detector
 from draw import draw_debug
 from ledclient import LEDClient
 from geomutils import contains
+from flask_cors import CORS
 
 H, W = 439, 639
 TRANSITION_TIMEOUT = 5
@@ -117,13 +118,12 @@ def main(args):
                 n = len([... for rn in regions.values() if rn == regionname])
                 #light_region(regionname, n, ledclient)
 
-                print("setting")
                 DASHBOARD_OUT["regions"][regionname] = {
                     "id": regionname,
                     "n": n,
                     "max": CAPACITY,
-                    "entered": len(intransitions),
-                    "exited": len(outtransitions),
+                    "entered": len(intransitions[regionname]),
+                    "exited": len(outtransitions[regionname]),
                 }
 
             regions_prev = regions.copy()
@@ -133,6 +133,7 @@ def main(args):
         detector.cleanup()
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route("/")
 def index():
