@@ -30,8 +30,9 @@ class Detector:
         self.cam.release()
 
     def process_frame(self):
-        _, self.frame = self.cam.read()
-        # frame = frame[64:-64]
+        ret = False
+        while not ret:
+            ret, self.frame = self.cam.read()
         markers = get_markers(self.frame, self.aruco_dict)
         self.update_regions(markers)
 
