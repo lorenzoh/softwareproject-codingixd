@@ -1,8 +1,8 @@
 import json
 from collections import defaultdict
+from time import time
 from typing import Dict, Optional, List, Tuple
 from argparse import ArgumentParser
-from time import time
 
 import cv2
 
@@ -12,8 +12,11 @@ from ledclient import LEDClient
 from geomutils import contains
 
 H, W = 439, 639
+TRANSITION_TIMEOUT = 5
 
-MARKERTIMEOUT = 3
+CAPACITY = 8
+
+DASHBOARD_OUT = {"regions": {}}
 
 REGIONS = {
     "platform": {
@@ -21,14 +24,14 @@ REGIONS = {
         "rect": [H // 2, 0, H, W],
         "leds": [],
     },
-    "cart3": {
-        "name": "cart3",
-        "rect": [0, 0, H // 2, W // 2],
-        "leds": [
-            ("bot5", "mid5", "top5"),
-            ("bot6", "mid6", "top6"),
-            ],
-    },
+    #"cart3": {
+    #    "name": "cart3",
+    #    "rect": [0, 0, H // 2, W // 2],
+    #    "leds": [
+    #        ("bot5", "mid5", "top5"),
+    #        ("bot6", "mid6", "top6"),
+    #        ],
+    #},
     "cart2": {
         "name": "cart2",
         "rect": [0, 0, H // 2, W // 2],
@@ -46,33 +49,6 @@ REGIONS = {
             ],
     },
 }
-
-def findregion(p: Tuple[int, int], regions) -> Optional["Region"]:
-    for region in regions.values():
-        if contains(region["rect"], p):
-            return region["name"]
-    else:
-        return None
-        
-
-def update_regions(markers, regions, markerregions, markertimeouts):
-
-    # refresh timeouts for detected markers
-    for marker in markers:
-        markertimeouts[marker["id"]] = time()
-
-    # remove timed out markers from tracking
-    t = time()
-    for (marker_id, timeout) in markertimeouts.items():
-        if timeout and t - timeout > MARKERTIMEOUT:
-            markerregions[marker_id] = None
-
-    # refresh/add regions for detected markers
-    for marker in markers:
-        markerregions[marker["id"]] = findregion(
-            marker["p"], regions)
-
-    return markerregions, markertimeouts
 
 
 def set_leds(ledgroups, n_on, ledclient):
@@ -106,39 +82,53 @@ def light_region(regionname: str, count: int, ledclient: LEDClient):
 
 def main(args):
     ledclient = LEDClient(args.controllerurl)
-    detector = Detector(args.cameraid)
+    detector = Detector(REGIONS, args.cameraid)
 
-    markerregions: Dict[str, str] = defaultdict(lambda: None)
-    markertimeouts = defaultdict(lambda: None)
+    intransitions = defaultdict(list)
+    outtransitions = defaultdict(list)
 
+    detector.setup()
     try:
+        regions_prev = None
         while True:
-            print("---")
-            frame, markers = detector.get_markers()
-            print(len(markers))
-            markerregions, markertimeouts = update_regions(
-                markers, REGIONS, markerregions, markertimeouts
-            )
-            print(json.dumps(dict(markerregions), indent=2))
-            
-            # count markers for every region
-            region_counts = {region: 0 for region in REGIONS}
-            for markerid, regionname in markerregions.items():
-                if regionname is None:
-                    continue
-                region_counts[regionname] += 1
-            
-            for regionname, count in region_counts.items():
-                light_region(regionname, count, ledclient)
+            detections = detector.process_frame()
+            regions = detections["regions"]
+            print(detections["markers"])
 
-            draw_debug(frame, markers, REGIONS)
-            lh, lw = int(frame.shape[0]*2), int(frame.shape[1]*2)
-            frame = cv2.resize(frame, (lw, lh))
-            cv2.imshow('frame',frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+            if regions_prev is not None:
+
+                for marker_id in regions.keys():
+                    region = regions[marker_id]
+                    region_prev = regions_prev.get(marker_id, None)
+                    print(region, region_prev)
+                    if region != region_prev:
+                        t = time()
+                        intransitions[region].append(t)
+                        outtransitions[region_prev].append(t)
+            
+
+            for ts in (intransitions, outtransitions):
+                for (r, tstamps) in ts.items():
+                    while tstamps and time() > (tstamps[0] + TRANSITION_TIMEOUT):
+                        tstamps.pop()
+
+            for regionname, region in REGIONS.items():
+                n = len([... for rn in regions.values() if rn == regionname])
+                light_region(regionname, n, ledclient)
+
+                DASHBOARD_OUT["regions"][regionname] = {
+                    "id": regionname,
+                    "n": n,
+                    "max": CAPACITY,
+                    "entered": len(intransitions),
+                    "exited": len(outtransitions),
+                }
+
+            regions_prev = regions.copy()
+
     finally:
         detector.cleanup()
+
 
 
 if __name__ == "__main__":

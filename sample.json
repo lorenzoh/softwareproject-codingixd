@@ -1,0 +1,26 @@
+{
+    "lastNSeconds": 30,
+    "regions": {
+        "cart1": {
+            "id": "cart1",
+            "n": 4,
+            "max": 8,
+            "entered": 5,
+            "exited": 4
+        },
+        "cart2": {
+            "id": "cart2",
+            "n": 5,
+            "max": 8,
+            "entered": 4,
+            "exited": 6
+        },
+        "cart3": {
+            "id": "cart3",
+            "n": 0,
+            "max": 8,
+            "entered": 0,
+            "exited": 6
+        }
+    }
+}
