@@ -1,0 +1,101 @@
+@font-face {
+  font-family: "Digital";
+  src:
+    url("/assets/Digital.woff2") format("woff2"),
+    url("/assets/Digital.woff") format("woff"),
+    url("/assets/Digital.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Diktator";
+  src:
+    url("/assets/WeissenseeDiktatorMedium.woff2") format("woff2"),
+    url("/assets/WeissenseeDiktatorMedium.woff") format("woff"),
+    url("/assets/WeissenseeDiktatorMedium.ttf") format("truetype");
+}
+
+span, img, div, svg{
+  padding: 0;
+  margin: 0;
+}
+
+.mom {
+  width: 95vw;
+  padding-top: 35vh;
+  height: 60vh;
+  margin: auto;
+  font-family: "Diktator", Arial, Helvetica, sans-serif;
+  font-size: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.train {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.cart {
+  width: 30%;
+}
+
+.load {
+  padding-bottom: 7px;
+  margin-bottom: 50px;
+  border: 3px solid black;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.load-value, .transfer-data {
+  font-family: "Digital";
+  font-size: 45px;
+  letter-spacing: 7px;
+}
+
+.load-value span {
+    opacity: .5;
+}
+
+.target {
+  width: 50px;
+  transform: translateY(10px);
+}
+
+.last-transfer{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.transfer-data{
+  width: 30%;
+  text-align: center;
+}
+
+.arrow{
+  width: 30px;
+  margin: 0 10px;
+}
+
+.arrow-up {
+  color: green;
+  fill: currentColor;
+  transform: rotate(180deg);
+}
+
+.arrow-down {
+  color: red;
+  fill: currentColor;
+}
+
+#description {
+  padding-top: 70px;
+  opacity: 0.5;
+}
+
+#description svg {
+  width: 20px;
+}
