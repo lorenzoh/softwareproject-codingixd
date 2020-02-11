@@ -1,2 +1,4 @@
 Flask
 opencv-python
+opencv-contrib-python
+Flask-CORS

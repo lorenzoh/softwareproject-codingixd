@@ -1,4 +1,4 @@
-from typing import Tuple, Optional
+from typing import Dict, Tuple, Optional
 from collections import defaultdict
 import cv2
 from time import time
@@ -34,7 +34,6 @@ class Detector:
         ret = False
         while not ret:
             ret, self.frame = self.cam.read()
-        print(self.frame.shape)
         markers = get_markers(self.frame, self.aruco_dict)
         self.update_regions(markers)
 

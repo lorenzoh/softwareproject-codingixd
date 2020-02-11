@@ -15,7 +15,7 @@ const ARROW_UP = (
             C479.793,292.501,480.71,287.915,479.046,283.925z"/>
           </svg>)
 let INIT = {
-  lastNSeconds: 30,
+  lastNSeconds: 5,
   regions: {
       cart1: {
           "id": "cart1",
@@ -52,9 +52,8 @@ class Dash extends React.Component {
     this.timer = setInterval(() => {
       axios.get("http://localhost:5000")
         .then(response => {
-          var regions = JSON.parse(response.data).regions
-          console.log(regions)
-          this.setState({regions: regions})
+          var data = JSON.parse(response.data)
+          this.setState({...data})
         })
         .catch(error => {
           console.error(error)

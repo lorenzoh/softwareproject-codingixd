@@ -7,7 +7,6 @@ class LEDController:
 
     def __init__(self, leds = {}):
         self.leds: Dict[Any, RGBLED] = {}
-        print("HI")
         for (name, pins) in leds.items():
             self.add_led(name, pins)
 
@@ -22,7 +21,6 @@ class LEDController:
     def set_on(self, name):
         led = self.leds[name] 
         assert isinstance(led, LED)
-        print("ON")
         led.off()
 
     def set_off(self, name):

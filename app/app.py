@@ -17,10 +17,10 @@ from flask_cors import CORS
 
 H, W = 439, 639
 TRANSITION_TIMEOUT = 5
-CAPACITY = 9
+CAPACITY = 8
 DATA = {}
 P = ".state"
-DASHBOARD_OUT = {"regions": {}}
+DASHBOARD_OUT = {"regions": {}, "lastNSeconds": TRANSITION_TIMEOUT}
 
 CART_START = 200
 CART_HEIGHT = 50
@@ -79,7 +79,7 @@ def light_region(regionname: str, count: int, ledclient: LEDClient):
 
 
 def main(args):
-    ledclient = LEDClient(args.controllerurl)
+    #ledclient = LEDClient(args.controllerurl)
     detector = Detector(REGIONS, args.cameraid)
 
     intransitions = defaultdict(list)
@@ -110,7 +110,7 @@ def main(args):
 
             for regionname, region in REGIONS.items():
                 n = len([... for rn in regions.values() if rn == regionname])
-                light_region(regionname, n, ledclient)
+                #light_region(regionname, n, ledclient)
 
                 DASHBOARD_OUT["regions"][regionname] = {
                     "id": regionname,
@@ -127,7 +127,7 @@ def main(args):
             draw_debug(detector.frame, detections["markers"], detector.regions)
             lh, lw = int(detector.frame.shape[0]*2), int(detector.frame.shape[1]*2)
             frame = cv2.resize(detector.frame, (lw, lh))
-            cv2.imshow('frame',detector.frame)
+            cv2.imshow('frame', frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
     finally:
