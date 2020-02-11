@@ -66,9 +66,9 @@ class Dash extends React.Component {
     return(
       <div className="mom" >
         <div className="train">
-          <Cart {...this.state.regions.cart1} />
-          <Cart {...this.state.regions.cart2} />
           <Cart {...this.state.regions.cart3} />
+          <Cart {...this.state.regions.cart2} />
+          <Cart {...this.state.regions.cart1} />
         </div>
         <div id="description">
           Number of people who exited ({ARROW_UP}) and entered ({ARROW_DOWN}) the wagon in the last {this.state.lastNSeconds} seconds.

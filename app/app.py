@@ -17,56 +17,50 @@ from flask_cors import CORS
 
 H, W = 439, 639
 TRANSITION_TIMEOUT = 5
-CAPACITY = 8
+CAPACITY = 9
 DATA = {}
 P = ".state"
 DASHBOARD_OUT = {"regions": {}}
 
+CART_START = 200
+CART_HEIGHT = 50
+
 REGIONS = {
     "platform": {
         "name": "platform",
-        "rect": [H // 2, 0, H, W],
-        "leds": [],
-    },
-    #"cart3": {
-    #    "name": "cart3",
-    #    "rect": [0, 0, H // 2, W // 2],
-    #    "leds": [
-    #        ("bot5", "mid5", "top5"),
-    #        ("bot6", "mid6", "top6"),
-    #        ],
-    #},
-    "cart2": {
-        "name": "cart2",
-        "rect": [0, 0, H // 2, W // 2],
-        "leds": [
-            ("bot3", "mid3", "top3"),
-            ("bot4", "mid4", "top4"),
-            ],
+        "rect": [0, 0, CART_START, W],
+        "ledgroups": [],
     },
     "cart1": {
         "name": "cart1",
-        "rect": [0, W // 2, H // 2, W],
-        "leds": [
-            ("bot1", "mid1", "top1"),
-            ("bot2", "mid2", "top2"),
-            ],
+        "rect": [CART_START, 0, CART_START + CART_HEIGHT, W // 3],
+        "ledgroups": [5, 6],
+    },
+    "cart2": {
+        "name": "cart2",
+        "rect": [CART_START, W//3, CART_START + CART_HEIGHT, 2 * (W//3)],
+        "ledgroups": [3, 4],
+    },
+    "cart3": {
+        "name": "cart3",
+        "rect": [CART_START, 2*(W//3), CART_START + CART_HEIGHT, W],
+        "ledgroups": [1, 2],
     },
 }
 
 
-def set_leds(ledgroups, n_on, ledclient):
-    ons = ([True] * n_on) + ([False] * (len(ledgroups[0])-n_on))
-    for leds in ledgroups:
-        for led, on in zip(leds, ons):
-            if on:
-                ledclient.set_on(led)
-            else:
-                ledclient.set_off(led)
+GROUPSTATE = defaultdict(lambda: None)
 
+def set_leds(ledgroups, n, ledclient):
+    for ledgroup in ledgroups:
+        currentn = GROUPSTATE[ledgroup]
+        if currentn != n:
+            ledclient.set_group(ledgroup, n)
+            GROUPSTATE[ledgroup] = n
+            
 
 def light_region(regionname: str, count: int, ledclient: LEDClient):
-    leds: List[Tuple[str, str, str]] = REGIONS[regionname]["leds"]
+    leds: List[Tuple[str, str, str]] = REGIONS[regionname]["ledgroups"]
     # region is not a cart
     if not leds:
         return
@@ -85,7 +79,7 @@ def light_region(regionname: str, count: int, ledclient: LEDClient):
 
 
 def main(args):
-    #ledclient = LEDClient(args.controllerurl)
+    ledclient = LEDClient(args.controllerurl)
     detector = Detector(REGIONS, args.cameraid)
 
     intransitions = defaultdict(list)
@@ -116,7 +110,7 @@ def main(args):
 
             for regionname, region in REGIONS.items():
                 n = len([... for rn in regions.values() if rn == regionname])
-                #light_region(regionname, n, ledclient)
+                light_region(regionname, n, ledclient)
 
                 DASHBOARD_OUT["regions"][regionname] = {
                     "id": regionname,
@@ -129,6 +123,13 @@ def main(args):
             regions_prev = regions.copy()
             with open(P, "w") as o:
                 json.dump(DASHBOARD_OUT, o)
+
+            draw_debug(detector.frame, detections["markers"], detector.regions)
+            lh, lw = int(detector.frame.shape[0]*2), int(detector.frame.shape[1]*2)
+            frame = cv2.resize(detector.frame, (lw, lh))
+            cv2.imshow('frame',detector.frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
     finally:
         detector.cleanup()
 

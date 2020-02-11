@@ -27,6 +27,10 @@ class LEDClient:
             timeout=3)
         r.raise_for_status()
 
+    def set_group(self, groupname, n):
+        r = requests.get(f"{self.url}/ledgroups/{groupname}", timeout=3, params={"n": n})
+        r.raise_for_status()
+
     def set_on(self, name):
         r = requests.get(f"{self.url}/leds/{name}/on", timeout=3)
         r.raise_for_status()

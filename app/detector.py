@@ -6,7 +6,8 @@ from time import time
 
 from geomutils import centroid, contains
 
-ARUCO_DICT = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_1000)
+#ARUCO_DICT = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_1000)
+ARUCO_DICT = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 MARKERTIMEOUT = 3
 
 
@@ -33,6 +34,7 @@ class Detector:
         ret = False
         while not ret:
             ret, self.frame = self.cam.read()
+        print(self.frame.shape)
         markers = get_markers(self.frame, self.aruco_dict)
         self.update_regions(markers)
 
